@@ -4,7 +4,6 @@ import os
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
-import numpy as np
 
 IMAGE_SIZE = (128, 128)
 
@@ -22,8 +21,7 @@ class VA_Dataset(Dataset):
 
         # Set default CSV path if not provided
         if mapping_csv is None:
-            project_root = Path(__file__).parent.parent.parent
-            mapping_csv = project_root / "data" / "emotion_mappings.csv"
+            mapping_csv = Path(__file__).parent / "emotion_mapping.csv"  # Update this path as needed
         else:
             mapping_csv = Path(mapping_csv)
 
@@ -85,51 +83,3 @@ class VA_Dataset(Dataset):
             img = self.transform(img)
             
         return img, label
-
-
-# Example usage
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    from torchvision import transforms
-
-    # Test configuration
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                         std=[0.229, 0.224, 0.225])
-    ])
-
-    try:
-        # Initialize dataset
-        dataset = VA_Dataset(
-            data_path="../../data/emotion_images",  # Update this path
-            transform=test_transform
-        )
-        
-        # Create dataloader
-        dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
-        
-        # Test one batch
-        images, labels = next(iter(dataloader))
-        print(f"Batch shape - Images: {images.shape}, Labels: {labels.shape}")
-        
-        # Visualize
-        plt.figure(figsize=(10, 5))
-        for i in range(min(4, len(images))):
-            img = images[i].numpy().transpose((1, 2, 0))
-            img = np.clip(img, 0, 1)
-            
-            plt.subplot(1, 4, i+1)
-            plt.imshow(img)
-            plt.title(f"V: {labels[i][0]:.2f}\nA: {labels[i][1]:.2f}")
-            plt.axis('off')
-        
-        plt.tight_layout()
-        plt.show()
-
-    except Exception as e:
-        print(f"Error during testing: {str(e)}")
-        print("\nTroubleshooting steps:")
-        print("1. Verify emotion_mappings.csv exists in ../../data/")
-        print("2. Check your emotion_images folder structure")
-        print("3. Ensure images are .jpg/.png format")

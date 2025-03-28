@@ -1,8 +1,8 @@
-import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
+from pathlib import Path
 
 from image_dataloader import VA_Dataset
 from train import train_model
@@ -11,8 +11,8 @@ from train import train_model
 BATCH_SIZE = 32
 EPOCHS = 50
 VAL_SPLIT = 0.2
-TRAIN_DATA_PATH = "../dataset/Train"  # Path to your dataset folder
-VAL_DATA_PATH = "../dataset/Val"  # Path to your validation dataset folder
+TRAIN_DATA_PATH = Path(__file__).parent.parent.parent / "dataset" / "train"  # Path to your dataset folder
+VAL_DATA_PATH = Path(__file__).parent.parent.parent / "dataset" / "test"  # Path to your dataset folder
 
 class VA_CNN(nn.Module):
     def __init__(self):

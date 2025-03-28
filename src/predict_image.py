@@ -11,40 +11,6 @@ IMAGE_SIZE = (128, 128)
 MODEL_PATH = "../trained_models/best_model.pth"  # Path to your trained model
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Define the same model architecture as during training
-class VA_CNN(nn.Module):
-    def __init__(self):
-        super(VA_CNN, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
-        
-        self.regressor = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(128 * 16 * 16, 256),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(256, 2),
-        )
-    
-    def forward(self, x):
-        x = self.features(x)
-        x = self.regressor(x)
-        return x
-
 def preprocess_image(image_path):
     """Load and preprocess a single image"""
     # Load image
