@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import Webcam from "react-webcam";
 import { 
   Container, 
   TextField, 
@@ -12,11 +13,55 @@ import {
 import axios from 'axios';
 
 function App() {
+
+  const webcamRef = useRef(null);   // Webcam component, allows us to interact w/ it
+  const canvasRef = useRef(null);  // Reference to the canvas element for frame drawing
+  const [capturing, setCapturing] = useState(false);  // Boolean state variable, tracks if we're capturing frames
+
   const [text, setText] = useState('');
   const [valence, setValence] = useState(0.5);
   const [arousal, setArousal] = useState(0.5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Every time capturing changes, useEffect runs
+  useEffect(() => {
+    let animationFrameId;
+    if (capturing) {
+      // Starts capturing frames using requestAnimationFrame
+      const captureFrame = () => {
+        const video = webcamRef.current.video;  // Access the video stream
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+
+        // Draw the current video frame to the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Capture the frame as a base64 image (or any other format you need)
+        const imageSrc = canvas.toDataURL('image/jpeg');
+        
+        // Send to your model here (e.g., feeding imageSrc into your ML model)
+        processImageWithModel(imageSrc);
+
+        // Request the next animation frame for continuous capture
+        animationFrameId = requestAnimationFrame(captureFrame);
+      };
+
+      // Start capturing frames
+      captureFrame();
+    } else {
+      cancelAnimationFrame(animationFrameId);  // Stop capturing frames
+    }
+
+    // Cleanup on unmount or when capturing stops
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [capturing]);
+
+  // Handle model processing logic (feeding image to model)
+  const processImageWithModel = (imageSrc) => {
+    // Example: Send imageSrc to your model for analysis
+    console.log("Sending frame to model", imageSrc);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,6 +102,29 @@ function App() {
   return (
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Webcam Capture
+        </Typography>
+
+        <Webcam 
+          audio={false}
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          width="100%"
+        />
+
+        <Button 
+          variant="contained" 
+          color="primary" 
+          sx={{ mt: 3 }}
+          onClick={() => setCapturing(!capturing)}
+        >
+          {capturing ? "Stop Capture" : "Start Capture"}
+        </Button>
+
+        {/* Canvas for capturing the frame, hidden */}
+        <canvas ref={canvasRef} style={{ display: 'none' }} width="640" height="480" />
+
         <Typography variant="h4" gutterBottom>
           Audio Processor
         </Typography>
@@ -127,4 +195,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
