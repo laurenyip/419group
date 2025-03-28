@@ -11,7 +11,8 @@ from train import train_model
 BATCH_SIZE = 32
 EPOCHS = 50
 VAL_SPLIT = 0.2
-DATA_PATH = "../dataset"  # Path to your dataset folder
+TRAIN_DATA_PATH = "../dataset/Train"  # Path to your dataset folder
+VAL_DATA_PATH = "../dataset/Val"  # Path to your validation dataset folder
 
 class VA_CNN(nn.Module):
     def __init__(self):
@@ -52,20 +53,14 @@ class VA_CNN(nn.Module):
 def main():
     # Define transforms
     transform = transforms.Compose([
+        #transforms.Resize((48, 48)), # Resize to 48x48
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
     # Create dataset
-    dataset = VA_Dataset(DATA_PATH, transform=transform)
-    
-    # Split dataset
-    train_idx, val_idx = train_test_split(
-        range(len(dataset)), test_size=VAL_SPLIT, random_state=42
-    )
-    
-    train_dataset = torch.utils.data.Subset(dataset, train_idx)
-    val_dataset = torch.utils.data.Subset(dataset, val_idx)
+    train_dataset = VA_Dataset(TRAIN_DATA_PATH, transform=transform)
+    val_dataset = VA_Dataset(VAL_DATA_PATH, transform=transform)
     
     # Create data loaders
     train_loader = DataLoader(
