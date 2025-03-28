@@ -50,7 +50,7 @@ def train_model(model, train_loader, val_loader, epochs):
         # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save(model.state_dict(), '../trained_models/best_model.pth')
         
         print(f'Epoch {epoch+1}/{epochs} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
     
