@@ -5,9 +5,9 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train_model(model, train_loader, val_loader, epochs):
+def train_model(model, train_loader, val_loader, epochs, threshold=0.5):
     model.to(DEVICE)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
     
@@ -30,26 +30,24 @@ def train_model(model, train_loader, val_loader, epochs):
             optimizer.step()
             
             train_loss += loss.item() * inputs.size(0)
-            _, predicted = torch.max(outputs.data, 1)
-            total_train += labels.size(0)
-            correct_train += (predicted == labels).sum().item()
+            correct_train += torch.sum(torch.abs(outputs - labels) < threshold).item()
+            total_train += labels.numel()
         
         # Validation
         model.eval()
         val_loss = 0.0
         correct_val = 0
         total_val = 0
-
+        
         with torch.no_grad():
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item() * inputs.size(0)
-
-                _, predicted = torch.max(outputs.data, 1)
-                total_val += labels.size(0)
-                correct_val += (predicted == labels).sum().item()                
+                
+                correct_val += torch.sum(torch.abs(outputs - labels) < threshold).item()
+                total_val += labels.numel()
         
         # Calculate metrics
         train_loss = train_loss / len(train_loader.dataset)
@@ -64,8 +62,8 @@ def train_model(model, train_loader, val_loader, epochs):
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), 'trained_models/best_model.pth')
-
-            print(f'Epoch {epoch+1}/{epochs} - Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2f}%')    
+        
+        print(f'Epoch {epoch+1}/{epochs} - Train Loss: {train_loss:.4f}, Train Within {threshold}: {train_acc:.2f}%, Val Loss: {val_loss:.4f}, Val Within {threshold}: {val_acc:.2f}%')
     
     # Save final model
     torch.save(model.state_dict(), 'final_model.pth')

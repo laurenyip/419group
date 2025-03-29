@@ -1,7 +1,6 @@
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from sklearn.model_selection import train_test_split
 from pathlib import Path
 
 from image_dataloader import VA_Dataset

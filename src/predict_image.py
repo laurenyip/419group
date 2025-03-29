@@ -3,12 +3,13 @@ import torch.nn as nn
 from torchvision import transforms
 import cv2
 import numpy as np
+from pathlib import Path
 
 from model.cnn import VA_CNN  # Import the model architecture
 
 # Configuration
 IMAGE_SIZE = (128, 128)
-MODEL_PATH = "../trained_models/best_model.pth"  # Path to your trained model
+MODEL_PATH = Path(__file__).parent / "trained_models" / "best_model.pth"  # Path to your trained model
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def preprocess_image(image_path):
@@ -56,7 +57,7 @@ def main():
     model.to(DEVICE)
     
     # Path to your test image
-    test_image_path = "test_image.jpg"  # Change this to your image path
+    test_image_path = "neutral.jpg"  # Change this to your image path
     
     # Get prediction
     valence, arousal = predict(test_image_path, model)
